@@ -20,4 +20,10 @@ pub struct UpdateUserRequest {
     pub email: Option<String>,
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct LoginRequest {
+    pub name: String,
+    pub email: String,
+}
+
 //
