@@ -5,6 +5,19 @@ use db::connect_database;
 use models::{CreateUserRequest, UpdateUserRequest, User};
 use actix_web::{App, HttpResponse, HttpServer, delete, get, post, put, web};
 
+#[get("/users/{id}")]
+async fn get_user(pool: web::Data<MySqlPool>, path: web::Path<i32>) -> HttpResponse {
+    let id = path.into_inner();
+    match sqlx::query_as::<_, User>("SELECT id, name, email FROM users WHERE id = ?")
+        .bind(id)
+        .fetch_one(pool.get_ref())
+        .await
+    {
+        Ok(user) => HttpResponse::Ok().json(user),
+        Err(e) => HttpResponse::InternalServerError().json(e.to_string()),
+    }
+}
+
 #[get("/users")]
 async fn list_users(pool: web::Data<MySqlPool>) -> HttpResponse {
     match sqlx::query_as::<_, User>("SELECT id, name, email FROM users")
@@ -60,6 +73,7 @@ async fn main() -> std::io::Result<()> {
     HttpServer::new(move || {
         App::new()
             .app_data(web::Data::new(pool.clone()))
+            .service(get_user)
             .service(list_users)
             .service(create_new_user)
             .service(update_user)
