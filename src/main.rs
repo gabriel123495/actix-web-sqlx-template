@@ -34,7 +34,6 @@ fn generate_jwt() -> jsonwebtoken::jws::Jws<Claims> {
     let secret = std::env::var("SECRET").expect("SECRET not set");
     let claims = Claims::new();
 
-    // retorna o Jws<Claims> diretamente
     encode(
         &Header::default(),
         Some(&claims),
@@ -70,9 +69,10 @@ async fn list_users(pool: web::Data<MySqlPool>) -> HttpResponse {
 
 #[post("/user")]
 async fn create_new_user(pool: web::Data<MySqlPool>, body: web::Json<CreateUserRequest>) -> HttpResponse {
-    match sqlx::query("INSERT INTO users (name,email) VALUES (?,?)")
+    match sqlx::query("INSERT INTO users (name,email,password) VALUES (?,?,?)")
         .bind(&body.name)
         .bind(&body.email)
+        .bind(&body.password)
         .execute(pool.get_ref())
         .await
     {
@@ -86,10 +86,11 @@ async fn update_user(pool: web::Data<MySqlPool>, path: web::Path<i32>, body: web
     let id = path.into_inner();
 
     match sqlx::query(
-        "UPDATE users SET name=COALESCE(?,name), email=COALESCE(?,email) WHERE id=?",
+        "UPDATE users SET name=COALESCE(?,name), email=COALESCE(?,email), password=COALESCE(?, password) WHERE id=?",
     )
     .bind(&body.name)
     .bind(&body.email)
+    .bind(&body.password)
     .bind(id)
     .execute(pool.get_ref())
     .await
