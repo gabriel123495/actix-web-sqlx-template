@@ -46,7 +46,7 @@ async fn get_user(pool: web::Data<MySqlPool>, path: web::Path<i32>) -> HttpRespo
 
     let id = path.into_inner();
 
-    match sqlx::query_as::<_, User>("SELECT id,name,email FROM users WHERE id=?")
+    match sqlx::query_as::<_, User>("SELECT id,name,email,password FROM users WHERE id=?")
         .bind(id)
         .fetch_one(pool.get_ref())
         .await
@@ -58,7 +58,7 @@ async fn get_user(pool: web::Data<MySqlPool>, path: web::Path<i32>) -> HttpRespo
 
 #[get("/users")]
 async fn list_users(pool: web::Data<MySqlPool>) -> HttpResponse {
-    match sqlx::query_as::<_, User>("SELECT id,name,email FROM users")
+    match sqlx::query_as::<_, User>("SELECT id,name,email,password FROM users")
         .fetch_all(pool.get_ref())
         .await
     {
