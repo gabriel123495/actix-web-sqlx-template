@@ -1,10 +1,10 @@
 use dotenvy::dotenv;
-use sqlx::{mysql::MySqlPoolOptions, mysql::MySql, Pool, Error};
+use sqlx::{mysql, Pool, Error};
 
-pub async fn connect_database() -> Result<Pool<MySql>, Error> {
+pub async fn connect_database() -> Result<Pool<mysql::MySql>, Error> {
     dotenv().ok();
     let url = std::env::var("DATABASE_URL").unwrap();
-    let pool = MySqlPoolOptions::new()
+    let pool = mysql::MySqlPoolOptions::new()
         .max_connections(5)
         .connect(&url)
         .await?;
